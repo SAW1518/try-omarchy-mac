@@ -1,0 +1,9 @@
+- [User](user.md) — language and the Mac setup being migrated
+- [How to work](feedback-how-to-work.md) — check what the user already left in ~/bypass before asking; short questions
+- [Try Omarchy](try-omarchy.md) — the VM, shared folder, ⌘/⌥/⌃ keys, last verified version
+- [Shortcuts](shortcuts.md) — which Mac shortcut maps to what in Omarchy, and why
+- [Keyboard](keyboard.md) — latam + kb_model pc105 (Try Omarchy sets applealu_iso and ? came out as _)
+- [Files](files.md) — Thunar with theme colors instead of Nautilus
+- [Workspaces](workspaces.md) — tiling/scrolling/floating modes, ⌘L, workspace 2 floating; don't re-offer window swapping
+- [Terminal](terminal.md) — Foot (default) vs Ghostty; Foot recommended
+- [Pending](pending.md) — what is left to test or solve
