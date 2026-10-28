@@ -2,7 +2,9 @@
 #
 # migrate-to-omarchy.sh — brings macOS Rectangle and Alfred shortcuts to Omarchy 4
 # (Try Omarchy, edge channel), sets the Latin American keyboard layout like on the
-# Mac, swaps Nautilus for a themed Thunar, and sets the wallpaper from assets/.
+# Mac, swaps Nautilus for a themed Thunar, sets the wallpaper from assets/, and
+# installs VS Code with the Mac's settings, keybindings and extensions, and adds
+# Warp-like autosuggestions to bash with ble.sh.
 #
 # Run it INSIDE OMARCHY, not on the Mac. The Mac's shared folder ~/bypass shows up
 # in Omarchy as ~/bypass:
@@ -12,7 +14,7 @@
 #   bash ~/bypass/omarchy-mac/migrate-to-omarchy.sh --uninstall # remove everything it installed
 #
 # Optional variables:
-#   KB_LAYOUT=latam             keyboard layout (empty = leave the keyboard alone)
+#   KB_LAYOUT="latam us:intl"   keyboard layouts, first is the default (empty = leave the keyboard alone)
 #   VAULT="/path/to/vault"      Obsidian vault
 #   WIN_MODS="SUPER + SHIFT"    modifiers for the Rectangle actions (Cmd+Shift on the Mac)
 #   RECT_GAP=10                 fixed gap in pixels (empty = same gaps as Hyprland's tiling)
@@ -37,13 +39,20 @@
 #                                   CTRL+V no longer reaches apps, just like with Alfred
 #     Shimmering Obsidian (o, or, on, ot, ov) → SUPER+ALT+O and SUPER+SHIFT+ALT+O
 #
-#   Keyboard: Latin American. Right Option acts as AltGr (@ = right Option + Q).
+#   Keyboard: Latin American, plus English (US, international) to switch to from the
+#   bar (click the ES/EN label). Right Option acts as AltGr (@ = right Option + Q).
 #   Try Omarchy sets kb_model=applealu_iso, which loads "latam Macintosh" and moves
 #   keys around (? came out as _). assets/zzz-keyboard-pc.lua sets it back to pc105.
+#
+#   VS Code: assets/vscode/ holds the Mac's settings, keybindings (⌘ → ctrl) and
+#   extension list. The theme stays One Dark Pro, not Omarchy's.
+#
+#   Terminal: ble.sh (AUR blesh-git) suggests commands from history in gray as you
+#   type, like Warp. → accepts the suggestion, Tab opens a completion menu.
 
 set -euo pipefail
 
-KB_LAYOUT="${KB_LAYOUT-latam}"
+KB_LAYOUT="${KB_LAYOUT-latam us:intl}"
 VAULT="${VAULT:-$HOME/Obsidian}"
 WIN_MODS="${WIN_MODS:-SUPER + SHIFT}"
 RECT_GAP="${RECT_GAP:-}"
@@ -61,6 +70,12 @@ THUNAR_TPL_SRC="$PROJECT_DIR/assets/thunar.css.tpl"
 THUNAR_TPL="$HOME/.config/omarchy/themed/thunar.css.tpl"
 GTK3_CSS="$HOME/.config/gtk-3.0/gtk.css"
 TYPING_SETUP="$OMARCHY_PATH/default/input-methods/typing_setup.py"
+VSCODE_SRC="$PROJECT_DIR/assets/vscode"
+VSCODE_USER="$HOME/.config/Code/User"
+VSCODE_THEME_TOGGLE="$HOME/.local/state/omarchy/toggles/skip-vscode-theme-changes"
+BASHRC="$HOME/.bashrc"
+BLESH="/usr/share/blesh/ble.sh"
+BLESH_TAG="# mac-migration: ble.sh"
 MARK_BEGIN="-- >>> mac-migration (Rectangle + Alfred) >>>"
 MARK_END="-- <<< mac-migration (Rectangle + Alfred) <<<"
 
@@ -389,7 +404,7 @@ setup_keyboard() {
 
   [[ -z $error ]] || warn "$(tail -n 1 <<<"$error")"
   warn "Couldn't switch the keyboard automatically. Opening Omarchy's picker: check"
-  warn "\"Spanish (Latin American)\" and uncheck \"English (US)\"."
+  warn "\"Spanish (Latin American)\" and \"English (US, intl., with dead keys)\", in that order."
   setsid -f omarchy-setup-keyboard >/dev/null 2>&1 ||
     warn "Open it yourself: SUPER + K > Setup > Typing > Keyboard Layouts."
 }
@@ -433,6 +448,67 @@ set_wallpaper() {
   info "Wallpaper: $(basename "$WALLPAPER") (theme $theme)"
 }
 
+# The toggle keeps Omarchy from switching VS Code to its own theme on every theme
+# change. Omarchy's installer writes its own settings.json, so ours goes after it;
+# anything changed in the VM is kept in a .bak before being overwritten.
+install_vscode() {
+  mkdir -p "$(dirname "$VSCODE_THEME_TOGGLE")"
+  touch "$VSCODE_THEME_TOGGLE"
+
+  if ! command -v code >/dev/null; then
+    info "Installing VS Code (it will ask for your password)"
+    omarchy-install-editor-vscode || { warn "Couldn't install VS Code; skipping it."; return 0; }
+  fi
+
+  local file stamp
+  stamp=$(date +%Y%m%d-%H%M%S)
+  mkdir -p "$VSCODE_USER"
+  for file in settings.json keybindings.json chatLanguageModels.json; do
+    if [[ -f $VSCODE_USER/$file ]] && ! cmp -s "$VSCODE_SRC/$file" "$VSCODE_USER/$file"; then
+      cp "$VSCODE_USER/$file" "$VSCODE_USER/$file.bak-$stamp"
+    fi
+    cp "$VSCODE_SRC/$file" "$VSCODE_USER/$file"
+  done
+
+  local installed extension
+  local -a failed=()
+  installed=$(code --list-extensions 2>/dev/null | tr '[:upper:]' '[:lower:]')
+  while read -r extension; do
+    [[ -n $extension ]] || continue
+    grep -qxF "${extension,,}" <<<"$installed" && continue
+    info "Installing VS Code extension $extension"
+    code --install-extension "$extension" >/dev/null 2>&1 || failed+=("$extension")
+  done <"$VSCODE_SRC/extensions.txt"
+
+  (( ${#failed[@]} == 0 )) || warn "These VS Code extensions didn't install: ${failed[*]}"
+  info "VS Code: settings, keybindings and extensions from the Mac"
+}
+
+# ble.sh gives bash Warp-like autosuggestions: gray text from history while typing
+# (→ accepts it), a completion menu on Tab and syntax highlighting. It has to load
+# before Omarchy's rc and attach at the very end, so ~/.bashrc gets two tagged
+# lines that every run replaces.
+strip_blesh() {
+  grep -vF -- "$BLESH_TAG" "$BASHRC"
+}
+
+install_blesh() {
+  [[ -f $BASHRC ]] || { warn "$BASHRC doesn't exist; skipping ble.sh."; return 0; }
+  if [[ ! -f $BLESH ]]; then
+    info "Installing ble.sh from the AUR (it will ask for your password)"
+    omarchy pkg aur add blesh-git || { warn "Couldn't install ble.sh; skipping it."; return 0; }
+  fi
+
+  local load="[[ -f $BLESH ]] && source $BLESH --noattach $BLESH_TAG"
+  local attach="[[ ! \${BLE_VERSION-} ]] || ble-attach $BLESH_TAG"
+  strip_blesh | awk -v src="$load" -v att="$attach" '
+    !done && /^source "\$OMARCHY_PATH\/default\/bash\/rc"/ { print src; done = 1 }
+    { print }
+    END { if (!done) print src; print att }
+  ' >"$BASHRC.tmp" && mv "$BASHRC.tmp" "$BASHRC"
+  info "Terminal: ble.sh autosuggestions (→ accepts, open a new terminal to see it)"
+}
+
 restore_keyboard() {
   [[ -f $KB_PREVIOUS ]] || return 0
 
@@ -451,14 +527,18 @@ restore_keyboard() {
 }
 
 uninstall() {
-  rm -f "$BIN_DIR/rectangle" "$BIN_DIR/obsidian-menu" "$KB_MODEL_FILE" "$THUNAR_TPL" "$GTK3_CSS"
+  rm -f "$BIN_DIR/rectangle" "$BIN_DIR/obsidian-menu" "$KB_MODEL_FILE" "$THUNAR_TPL" "$GTK3_CSS" "$VSCODE_THEME_TOGGLE"
   xdg-mime default org.gnome.Nautilus.desktop inode/directory 2>/dev/null || true
+  if [[ -f $BASHRC ]] && grep -qF -- "$BLESH_TAG" "$BASHRC"; then
+    strip_blesh >"$BASHRC.tmp" && mv "$BASHRC.tmp" "$BASHRC"
+  fi
   if [[ -f $BINDINGS ]] && grep -qxF -- "$MARK_BEGIN" "$BINDINGS"; then
     strip_block "$BINDINGS" >"$BINDINGS.tmp" && mv "$BINDINGS.tmp" "$BINDINGS"
   fi
   hyprctl reload >/dev/null 2>&1 || true
   restore_keyboard
   info "Done: bindings and helper scripts removed."
+  info "VS Code, its extensions and its settings stay; it follows Omarchy's theme again."
 }
 
 main() {
@@ -466,6 +546,9 @@ main() {
     --dry-run)
       lua_block
       [[ -z $KB_LAYOUT ]] || printf '\n(It would also set the keyboard to: %s)\n' "$KB_LAYOUT" >&2
+      printf '(It would also set up VS Code with %s extensions from assets/vscode)\n' \
+        "$(grep -c . "$VSCODE_SRC/extensions.txt")" >&2
+      printf '(It would also install ble.sh and hook it into %s)\n' "$BASHRC" >&2
       exit 0
       ;;
     --uninstall | "") ;;
@@ -497,6 +580,8 @@ main() {
   install_keyboard_model
   install_thunar
   set_wallpaper
+  install_vscode
+  install_blesh
 
   if [[ ! -d $VAULT ]]; then
     warn "The vault doesn't exist yet at $VAULT."
@@ -522,6 +607,9 @@ Done. Your shortcuts in Omarchy (⌘ = SUPER, ⌥ = ALT, ⌃ = CTRL):
   CTRL + V                    clipboard history (was Alfred) · paste: SUPER + V
   SUPER + ALT + O             find an Obsidian note · full menu: SUPER + SHIFT + ALT + O
   Keyboard                    ${layouts}${altgr}
+  VS Code                     ⌘ shortcuts are CTRL: CTRL + L format, CTRL + D duplicate
+                              (copy/paste stay on SUPER + C / SUPER + V)
+  Terminal                    gray suggestions while typing: → accepts, Tab shows a menu
 
 Note: these replace Omarchy's shortcuts for swapping windows (SUPER+SHIFT+arrows),
 editor (SUPER+SHIFT+N), music (SUPER+SHIFT+M) and the second browser shortcut

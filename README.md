@@ -7,6 +7,7 @@ Makes [Omarchy](https://omarchy.org) 4, running in the [Try Omarchy](https://git
 - **Latin American keyboard**, fixing Try Omarchy's Apple keyboard model, which moves keys around on Latin American ISO MacBooks.
 - **Thunar** instead of Nautilus, styled with the current Omarchy theme colors.
 - Your **wallpaper** (drop it in `assets/wallpaper.jpg`).
+- **VS Code** with the Mac's settings, keybindings (⌘ becomes Ctrl) and extensions from `assets/vscode/`, keeping its own theme instead of Omarchy's.
 
 Everything is reinstalled with one command after Try Omarchy updates or recreates the VM.
 

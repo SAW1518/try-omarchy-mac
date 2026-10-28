@@ -11,3 +11,5 @@ updated: 2026-10-27
 - [ ] Old memories about this topic remain in the Mac's own Claude Code memory folder (`~/.claude/projects/<home folder>/memory/`). The user wants all context here; they can be deleted from the Mac.
 - [ ] Workspace 2 is still floating; the user knows ⌘L switches it back. Still open whether to move that shortcut to ⌘⇧L. See [[workspaces]].
 - [ ] User to say whether they like Thunar with the theme colors (popup menus and dialogs aren't styled). See [[files]].
+- [ ] VS Code: the script already ran (all 20 extensions installed, including `docker.docker`). User to check One Dark Pro with a black background, ⌃L formats, ⌃D duplicates, and sign in to GitHub for Copilot. See [[vscode]].
+- [ ] ble.sh: user to run the script (needs the sudo password for the AUR install), open a new terminal and check gray suggestions, → to accept, Tab menu. See [[terminal]].

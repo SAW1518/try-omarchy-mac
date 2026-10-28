@@ -10,4 +10,5 @@ updated: 2026-10-27
 - **Fix:** `assets/zzz-keyboard-pc.lua` → `~/.local/state/omarchy/toggles/hypr/`, with `hl.config({ input = { kb_model = "pc105" } })`. It's named `zzz-` so it loads after `zz-try-omarchy.lua`. The script installs it.
 - To check which key types a character: `xkbcli how-to-type --model pc105 --layout latam '?'`.
 - Right Option acts as AltGr: `@` = right Option + Q.
+- **Second layout (2026-10-28):** the user asked for English (US, international) to switch to with an external keyboard. `KB_LAYOUT` default is now `"latam us:intl"` (kb_layout `latam,us`, kb_variant `,intl`). Omarchy's own bar widget `omarchy.keyboard-layout` (already in the bar) only shows with 2+ layouts; it shows ES/EN and a click switches. No custom widget needed. User confirmed it works.
 - Not confirmed yet: `| °` (key next to 1) and `< >` (key next to Z). On Mac ISO keyboards inside a VM they sometimes come out swapped (see [[pending]]).

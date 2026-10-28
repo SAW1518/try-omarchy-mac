@@ -1,0 +1,17 @@
+[
+	{
+		"name": "Copilot",
+		"vendor": "copilot",
+		"settings": {
+			"gpt-5.6-sol": {
+				"reasoningEffort": "high"
+			},
+			"gpt-5.6-terra": {
+				"reasoningEffort": "high"
+			},
+			"gpt-5.6-luna": {
+				"reasoningEffort": "xhigh"
+			}
+		}
+	}
+]

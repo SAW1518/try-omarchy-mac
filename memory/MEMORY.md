@@ -5,5 +5,7 @@
 - [Keyboard](keyboard.md) — latam + kb_model pc105 (Try Omarchy sets applealu_iso and ? came out as _)
 - [Files](files.md) — Thunar with theme colors instead of Nautilus
 - [Workspaces](workspaces.md) — tiling/scrolling/floating modes, ⌘L, workspace 2 floating; don't re-offer window swapping
-- [Terminal](terminal.md) — Foot (default) vs Ghostty; Foot recommended
+- [Terminal](terminal.md) — Foot (default) vs Ghostty; Foot recommended; ble.sh for Warp-like autosuggestions
+- [Git](git.md) — publishing plan, what's gitignored, repo state
 - [Pending](pending.md) — what is left to test or solve
+- [VS Code](vscode.md) — settings, keybindings (⌘ → ctrl) and extensions from the Mac; keeps One Dark Pro
