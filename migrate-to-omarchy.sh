@@ -138,6 +138,9 @@ rebind("CTRL + V", "Clipboard (was Alfred)", { panel = "omarchy.clipboard" })
 rebind("SUPER + ALT + O", "Obsidian: find note", mac_bin .. "obsidian-menu search")
 rebind("SUPER + SHIFT + ALT + O", "Obsidian: menu", mac_bin .. "obsidian-menu")
 
+-- Browser on SUPER+B, next to the terminal on SUPER+RETURN.
+rebind("SUPER + B", "Browser", { omarchy = "browser" })
+
 -- Thunar instead of Nautilus, with the same transparency and floating rules.
 rebind("SUPER + SHIFT + F", "File manager", o.launch("thunar"))
 rebind("SUPER + ALT + SHIFT + F", "File manager (cwd)", o.launch("sh -c 'thunar \"\$(omarchy-cmd-terminal-cwd)\"'"))
@@ -603,6 +606,7 @@ Done. Your shortcuts in Omarchy (⌘ = SUPER, ⌥ = ALT, ⌃ = CTRL):
   SUPER + T                   put the window back into the tiling
   SUPER + SPACE               Apps (was Alfred) · Omarchy menu: SUPER + K
   SUPER + SHIFT + K           keybindings list
+  SUPER + B                   browser (like SUPER + Enter for the terminal)
   SUPER + SHIFT + F           files (Thunar)
   CTRL + V                    clipboard history (was Alfred) · paste: SUPER + V
   SUPER + ALT + O             find an Obsidian note · full menu: SUPER + SHIFT + ALT + O

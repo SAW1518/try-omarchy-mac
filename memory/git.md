@@ -13,3 +13,4 @@ updated: 2026-10-27
 
 **Why:** the project is going public (or at least to a remote), so memory, docs and scripts must hold nothing personal.
 **How to apply:** before any commit, scan the files to be committed for names, emails, usernames, `/Users/`/`/home/` paths, session IDs and photos. Don't run `git init`, commit or push unless the user asks.
+- 2026-10-28: commit `35ee889` (us:intl layout, VS Code, ble.sh) pushed to `origin/main` at the user's request.
