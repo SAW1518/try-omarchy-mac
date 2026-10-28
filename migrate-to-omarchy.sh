@@ -19,6 +19,8 @@
 #   WIN_MODS="SUPER + SHIFT"    modifiers for the Rectangle actions (Cmd+Shift on the Mac)
 #   RECT_GAP=10                 fixed gap in pixels (empty = same gaps as Hyprland's tiling)
 #   WALLPAPER=/path/to/image    wallpaper (empty = leave the wallpaper alone)
+#   THEME=Catppuccin            Omarchy theme (empty = leave the theme alone)
+#   CLOCK_ZONES="City|Zone, …"  world clock cities on the bar (empty = leave them alone)
 #
 # In Try Omarchy, ⌘ arrives as SUPER, ⌥ as ALT and ⌃ as CTRL.
 #
@@ -47,6 +49,9 @@
 #   VS Code: assets/vscode/ holds the Mac's settings, keybindings (⌘ → ctrl) and
 #   extension list. The theme stays One Dark Pro, not Omarchy's.
 #
+#   Bar: a Pomodoro timer (assets/pomodoro) after the workspaces, world clock
+#   cities, and a dock that hides itself.
+#
 #   Terminal: ble.sh (AUR blesh-git) suggests commands from history in gray as you
 #   type, like Warp. → accepts the suggestion, Tab opens a completion menu.
 
@@ -58,6 +63,8 @@ WIN_MODS="${WIN_MODS:-SUPER + SHIFT}"
 RECT_GAP="${RECT_GAP:-}"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WALLPAPER="${WALLPAPER-$PROJECT_DIR/assets/wallpaper.jpg}"
+THEME="${THEME-Catppuccin}"
+CLOCK_ZONES="${CLOCK_ZONES-Mexico City|America/Mexico_City, Sao Paulo|America/Sao_Paulo, London|Europe/London, Dubai|Asia/Dubai, Tokyo|Asia/Tokyo}"
 export OMARCHY_PATH="${OMARCHY_PATH:-/usr/share/omarchy}"
 
 BIN_DIR="$HOME/.local/bin"
@@ -76,6 +83,10 @@ VSCODE_THEME_TOGGLE="$HOME/.local/state/omarchy/toggles/skip-vscode-theme-change
 BASHRC="$HOME/.bashrc"
 BLESH="/usr/share/blesh/ble.sh"
 BLESH_TAG="# mac-migration: ble.sh"
+SHELL_JSON="$HOME/.config/omarchy/shell.json"
+POMODORO_SRC="$PROJECT_DIR/assets/pomodoro"
+POMODORO_ID="$USER.pomodoro"
+POMODORO_DIR="$HOME/.config/omarchy/plugins/$POMODORO_ID"
 MARK_BEGIN="-- >>> mac-migration (Rectangle + Alfred) >>>"
 MARK_END="-- <<< mac-migration (Rectangle + Alfred) <<<"
 
@@ -438,6 +449,45 @@ install_thunar() {
   info "File manager: Thunar with the theme colors"
 }
 
+# Goes before Thunar and the wallpaper: both read the current theme.
+set_theme() {
+  [[ -n $THEME ]] || return 0
+  if [[ $(omarchy theme current) == "$THEME" ]]; then
+    info "Theme is already $THEME"
+    return 0
+  fi
+  omarchy theme set "$THEME" >/dev/null 2>&1 || { warn "Couldn't set the theme $THEME."; return 0; }
+  info "Theme: $THEME"
+}
+
+# shell.json hot-reloads, so the bar picks the changes up without a restart.
+edit_shell_json() {
+  jq "$@" "$SHELL_JSON" >"$SHELL_JSON.tmp" && mv "$SHELL_JSON.tmp" "$SHELL_JSON"
+}
+
+# The plugin id carries the username, like plugins made with omarchy plugin clone.
+install_bar() {
+  [[ -f $SHELL_JSON ]] || { warn "$SHELL_JSON doesn't exist; skipping the bar."; return 0; }
+
+  mkdir -p "$POMODORO_DIR/i18n"
+  sed "s/__USER__/$USER/g" "$POMODORO_SRC/manifest.json" >"$POMODORO_DIR/manifest.json"
+  sed "s/__USER__/$USER/g" "$POMODORO_SRC/BarWidget.qml" >"$POMODORO_DIR/BarWidget.qml"
+  cp "$POMODORO_SRC/i18n/en.json" "$POMODORO_DIR/i18n/"
+  # The shell takes a moment to discover a freshly copied plugin.
+  local tries
+  for tries in {1..10}; do
+    jq -e --arg id "$POMODORO_ID" '[.bar.layout[]?[]? | .id?] | index($id)' "$SHELL_JSON" >/dev/null && break
+    omarchy bar put "$POMODORO_ID" --after omarchy.workspaces >/dev/null 2>&1 && break
+    (( tries < 10 )) || warn "Couldn't add the Pomodoro to the bar: add it with omarchy bar put $POMODORO_ID"
+    sleep 1
+  done
+
+  [[ -z $CLOCK_ZONES ]] || omarchy bar set omarchy.elsewhen zones "$CLOCK_ZONES" >/dev/null ||
+    warn "Couldn't set the world clock cities."
+  edit_shell_json '.dock.autohide = true'
+  info "Bar: Pomodoro, world clock cities, dock hides itself"
+}
+
 set_wallpaper() {
   [[ -n $WALLPAPER ]] || return 0
   [[ -f $WALLPAPER ]] || { info "No wallpaper at $WALLPAPER, leaving the current one"; return 0; }
@@ -531,6 +581,10 @@ restore_keyboard() {
 
 uninstall() {
   rm -f "$BIN_DIR/rectangle" "$BIN_DIR/obsidian-menu" "$KB_MODEL_FILE" "$THUNAR_TPL" "$GTK3_CSS" "$VSCODE_THEME_TOGGLE"
+  if [[ -f $SHELL_JSON ]]; then
+    edit_shell_json --arg id "$POMODORO_ID" '.bar.layout |= map_values(if type == "array" then map(select(.id? != $id)) else . end)'
+  fi
+  rm -rf "$POMODORO_DIR"
   xdg-mime default org.gnome.Nautilus.desktop inode/directory 2>/dev/null || true
   if [[ -f $BASHRC ]] && grep -qF -- "$BLESH_TAG" "$BASHRC"; then
     strip_blesh >"$BASHRC.tmp" && mv "$BASHRC.tmp" "$BASHRC"
@@ -542,6 +596,7 @@ uninstall() {
   restore_keyboard
   info "Done: bindings and helper scripts removed."
   info "VS Code, its extensions and its settings stay; it follows Omarchy's theme again."
+  info "The theme, world clock cities and dock setting stay as they are."
 }
 
 main() {
@@ -552,6 +607,8 @@ main() {
       printf '(It would also set up VS Code with %s extensions from assets/vscode)\n' \
         "$(grep -c . "$VSCODE_SRC/extensions.txt")" >&2
       printf '(It would also install ble.sh and hook it into %s)\n' "$BASHRC" >&2
+      [[ -z $THEME ]] || printf '(It would also set the theme to %s)\n' "$THEME" >&2
+      printf '(It would also add the Pomodoro and world clock cities to the bar and auto-hide the dock)\n' >&2
       exit 0
       ;;
     --uninstall | "") ;;
@@ -581,8 +638,10 @@ main() {
   install_bindings
   setup_keyboard
   install_keyboard_model
+  set_theme
   install_thunar
   set_wallpaper
+  install_bar
   install_vscode
   install_blesh
 
@@ -614,6 +673,7 @@ Done. Your shortcuts in Omarchy (⌘ = SUPER, ⌥ = ALT, ⌃ = CTRL):
   VS Code                     ⌘ shortcuts are CTRL: CTRL + L format, CTRL + D duplicate
                               (copy/paste stay on SUPER + C / SUPER + V)
   Terminal                    gray suggestions while typing: → accepts, Tab shows a menu
+  Bar                         Pomodoro (left click start/pause, right click reset)
 
 Note: these replace Omarchy's shortcuts for swapping windows (SUPER+SHIFT+arrows),
 editor (SUPER+SHIFT+N), music (SUPER+SHIFT+M) and the second browser shortcut

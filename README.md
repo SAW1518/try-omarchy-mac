@@ -4,10 +4,13 @@ Makes [Omarchy](https://omarchy.org) 4, running in the [Try Omarchy](https://git
 
 - **Rectangle** shortcuts (⌘⇧ + arrows for halves, ⌘⇧↩ maximize, ⌘⇧N / ⌘⇧⌦ thirds, ⌘⇧M / Insert two thirds), with the same gaps as Hyprland's tiling.
 - **Alfred** shortcuts: ⌘Space opens Omarchy's app launcher, ⌃V opens clipboard history, plus a small Shimmering Obsidian–style menu (⌘⌥O).
-- **Latin American keyboard**, fixing Try Omarchy's Apple keyboard model, which moves keys around on Latin American ISO MacBooks.
+- **Latin American keyboard**, fixing Try Omarchy's Apple keyboard model, which moves keys around on Latin American ISO MacBooks. English (US, international) is one click away on the bar.
+- **⌘B** opens the browser, like ⌘↩ opens the terminal.
 - **Thunar** instead of Nautilus, styled with the current Omarchy theme colors.
-- Your **wallpaper** (drop it in `assets/wallpaper.jpg`).
+- The **Catppuccin** theme and your **wallpaper** (drop it in `assets/wallpaper.jpg`).
+- **Bar**: a Pomodoro timer, world clock cities, and a dock that hides itself.
 - **VS Code** with the Mac's settings, keybindings (⌘ becomes Ctrl) and extensions from `assets/vscode/`, keeping its own theme instead of Omarchy's.
+- **ble.sh** in bash for gray, Warp-like suggestions from history.
 
 Everything is reinstalled with one command after Try Omarchy updates or recreates the VM.
 

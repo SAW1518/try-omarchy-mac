@@ -8,4 +8,5 @@
 - [Terminal](terminal.md) — Foot (default) vs Ghostty; Foot recommended; ble.sh for Warp-like autosuggestions
 - [Git](git.md) — publishing plan, what's gitignored, repo state
 - [Pending](pending.md) — what is left to test or solve
+- [Bar](bar.md) — theme Catppuccin, Pomodoro widget, world clock cities, dock autohide
 - [VS Code](vscode.md) — settings, keybindings (⌘ → ctrl) and extensions from the Mac; keeps One Dark Pro

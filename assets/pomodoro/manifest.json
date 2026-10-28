@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "__USER__.pomodoro",
+  "name": "Pomodoro",
+  "version": "1.0.0",
+  "author": "__USER__",
+  "license": "MIT",
+  "description": "A Pomodoro focus timer on the bar, with a notification when each focus or break block ends.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Pomodoro",
+    "description": "Focus timer: left = start/pause · right = reset · middle = skip · scroll = ±1 minute",
+    "category": "Time",
+    "aliases": [
+      "pomodoro",
+      "focus",
+      "timer",
+      "tomato"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "left",
+    "defaults": {
+      "focusMinutes": 25,
+      "breakMinutes": 5,
+      "longBreakMinutes": 15,
+      "longBreakEvery": 4
+    },
+    "schema": [
+      { "key": "focusMinutes", "type": "number", "label": "Focus block length (minutes)", "defaultValue": 25 },
+      { "key": "breakMinutes", "type": "number", "label": "Short break length (minutes)", "defaultValue": 5 },
+      { "key": "longBreakMinutes", "type": "number", "label": "Long break length (minutes)", "defaultValue": 15 },
+      { "key": "longBreakEvery", "type": "number", "label": "Focus blocks before a long break", "defaultValue": 4 }
+    ]
+  }
+}

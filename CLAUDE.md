@@ -1,6 +1,6 @@
 # omarchy-mac
 
-Brings my Mac setup (Rectangle and Alfred shortcuts, Latin American keyboard, wallpaper and file manager) to Omarchy, which runs in the **Try Omarchy** app, a VM on an Apple Silicon Mac.
+Brings my Mac setup (Rectangle and Alfred shortcuts, Latin American keyboard, theme, wallpaper, bar and file manager) to Omarchy, which runs in the **Try Omarchy** app, a VM on an Apple Silicon Mac.
 I run it again **every time Try Omarchy updates or recreates the VM**, because recreating it wipes `~/.config`.
 
 **Talk to me in Spanish, in plain words.** Keep the project files in English: the project is published to git.
@@ -20,6 +20,7 @@ All of this project's memory lives **inside this folder**, in `memory/`. Don't u
 | `assets/zzz-keyboard-pc.lua` | Keyboard fix: sets `kb_model` back to `pc105` (see `memory/keyboard.md`) |
 | `assets/thunar.css.tpl` | Theme colors for Thunar, the file manager (see `memory/files.md`) |
 | `assets/vscode/` | VS Code from the Mac: `settings.json`, `keybindings.json` (⌘ → ctrl), `chatLanguageModels.json`, `extensions.txt` (see `memory/vscode.md`) |
+| `assets/pomodoro/` | Pomodoro widget for the bar; the script installs it as `<user>.pomodoro` (see `memory/bar.md`) |
 | `assets/wallpaper.jpg` | Wallpaper (not in git) |
 | `assets/keyboard-photo.jpeg` | Photo of my physical keyboard; use it to tell which key is which (not in git) |
 | `.claude/skills/project-memory` | How to read and save memory in `memory/` |
@@ -45,7 +46,8 @@ The shared folder is `~/bypass` on the Mac. Inside Omarchy it's `/mnt/mac`, link
    - `hyprctl configerrors` is empty;
    - `hyprctl -j binds` has the `Rectangle:*` / `(was Alfred)` bindings;
    - `hyprctl -j getoption input:kb_model` is `pc105`;
-   - `omarchy theme bg current`;
+   - `omarchy theme current` is Catppuccin and `omarchy theme bg current` is the wallpaper;
+   - the bar shows the Pomodoro after the workspaces, the dock hides itself;
    - `grep -c "mac-migration: ble.sh" ~/.bashrc` is 2.
 5. Ask me to try ⌘⇧←, ⌘⇧N, ⌘Space, ⌘K, ⌃V, ⌘⇧F (Thunar) and to type `? ¿ ñ ´ | ° < > @`. In a new terminal, gray suggestions as I type (→ accepts). In VS Code: One Dark Pro with a black background, ⌃L formats, ⌃D duplicates.
 6. Refresh Omarchy's skills: `bash update-skills.sh`.

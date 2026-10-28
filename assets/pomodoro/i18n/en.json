@@ -1,0 +1,12 @@
+{
+  "tooltip.idle": "Pomodoro: click to start a %1-minute focus block",
+  "tooltip.focus": "Focus · %1 left",
+  "tooltip.break": "Break · %1 left",
+  "tooltip.paused": "Paused · %1 left",
+  "tooltip.hints": "Left: start/pause · Right: reset · Middle: skip · Scroll: ±1 min",
+  "tooltip.done": { "one": "%1 focus block done this session", "other": "%1 focus blocks done this session" },
+  "notify.focusDone": "Focus block done",
+  "notify.focusDoneBody": "Take a %1-minute break.",
+  "notify.breakDone": "Break over",
+  "notify.breakDoneBody": "Time for the next focus block."
+}
